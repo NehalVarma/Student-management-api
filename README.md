@@ -32,6 +32,12 @@ python manage.py runserver
 - GET `/api/students/1/` - get student
 - PUT `/api/students/1/` - update student  
 - DELETE `/api/students/1/` - delete student
+- GET `/api/students/search/?q=term` - search students
+
+**Search options:**
+- `/api/students/?search=name` - filter by name
+- `/api/students/?course=course` - filter by course  
+- `/api/students/?age=22` - filter by age
 
 Test with Postman or curl.
 

@@ -10,10 +10,25 @@ from .serializers import StudentSerializer
 def student_list(request):
     if request.method == 'GET':
         students = Student.objects.all()
+        
+        # Search functionality
+        search = request.GET.get('search')
+        if search:
+            students = students.filter(name__icontains=search)
+        
+        course = request.GET.get('course')
+        if course:
+            students = students.filter(course__icontains=course)
+            
+        age = request.GET.get('age')
+        if age:
+            students = students.filter(age=age)
+        
         serializer = StudentSerializer(students, many=True)
         return Response({
             'success': True,
             'data': serializer.data,
+            'count': len(serializer.data),
             'message': 'Students retrieved successfully'
         })
 
@@ -66,3 +81,28 @@ def student_detail(request, pk):
             'success': True,
             'message': 'Student deleted successfully'
         }, status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET'])
+def search_students(request):
+    query = request.GET.get('q', '')
+    if not query:
+        return Response({
+            'success': False,
+            'message': 'Search query parameter "q" is required'
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    students = Student.objects.filter(
+        name__icontains=query
+    ) | Student.objects.filter(
+        course__icontains=query
+    )
+    
+    serializer = StudentSerializer(students, many=True)
+    return Response({
+        'success': True,
+        'data': serializer.data,
+        'count': len(serializer.data),
+        'query': query,
+        'message': f'Found {len(serializer.data)} students matching "{query}"'
+    })
