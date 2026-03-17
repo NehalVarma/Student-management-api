@@ -7,6 +7,9 @@ class StudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['id', 'name', 'email', 'age', 'course', 'created_at', 'updated_at']
         read_only_fields = ['id', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'email': {'validators': []}
+        }
 
     def validate_age(self, value):
         if value < 16 or value > 100:
@@ -14,9 +17,9 @@ class StudentSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        if Student.objects.filter(email=value).exists():
-            if self.instance and self.instance.email != value:
-                raise serializers.ValidationError("A student with this email already exists.")
-            elif not self.instance:
-                raise serializers.ValidationError("A student with this email already exists.")
+        qs = Student.objects.filter(email=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("A student with this email already exists.")
         return value

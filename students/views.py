@@ -48,7 +48,7 @@ def student_list(request):
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def student_detail(request, pk):
     student = get_object_or_404(Student, pk=pk)
 
@@ -60,8 +60,9 @@ def student_detail(request, pk):
             'message': 'Student retrieved successfully'
         })
 
-    elif request.method == 'PUT':
-        serializer = StudentSerializer(student, data=request.data)
+    elif request.method in ['PUT', 'PATCH']:
+        partial = request.method == 'PATCH'
+        serializer = StudentSerializer(student, data=request.data, partial=partial)
         if serializer.is_valid():
             serializer.save()
             return Response({
