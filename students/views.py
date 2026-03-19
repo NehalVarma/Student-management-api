@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.db.models import Q
 from .models import Student
 from .serializers import StudentSerializer
 
@@ -28,7 +29,8 @@ def student_list(request):
         return Response({
             'success': True,
             'data': serializer.data,
-            'count': len(serializer.data),
+            #'count': len(serializer.data),
+            'count': students.count(),
             'message': 'Students retrieved successfully'
         })
 
@@ -50,7 +52,14 @@ def student_list(request):
 
 @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
 def student_detail(request, pk):
-    student = get_object_or_404(Student, pk=pk)
+    #student = get_object_or_404(Student, pk=pk)
+    try:
+        student = Student.objects.get(pk=pk)
+    except Student.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Student not found'
+        }, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = StudentSerializer(student)
@@ -93,17 +102,21 @@ def search_students(request):
             'message': 'Search query parameter "q" is required'
         }, status=status.HTTP_400_BAD_REQUEST)
     
-    students = Student.objects.filter(
+    """students = Student.objects.filter(
         name__icontains=query
     ) | Student.objects.filter(
         course__icontains=query
+    )"""
+    students = Student.objects.filter(
+        Q(name__icontains=query) | Q(course__icontains=query)
     )
     
     serializer = StudentSerializer(students, many=True)
     return Response({
         'success': True,
         'data': serializer.data,
-        'count': len(serializer.data),
+        #'count': len(serializer.data),
+        'count': students.count(),
         'query': query,
-        'message': f'Found {len(serializer.data)} students matching "{query}"'
+        'message': f'Found {students.count()} students matching "{query}"'
     })

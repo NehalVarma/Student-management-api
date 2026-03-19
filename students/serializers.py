@@ -5,8 +5,8 @@ from .models import Student
 class StudentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Student
-        fields = ['id', 'name', 'email', 'age', 'course', 'created_at', 'updated_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'email', 'age', 'course', 'created_at']
+        read_only_fields = ['id', 'created_at','updated_at']
         extra_kwargs = {
             'email': {'validators': []}
         }
